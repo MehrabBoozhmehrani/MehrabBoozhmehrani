@@ -1,0 +1,149 @@
+/**
+ * @component ResumeModal
+ * @description ResumeModal section of the Animated 3D Portfolio
+ * @author      Nithin K R — https://github.com/NITHINKR06
+ * @license     Attribution required — see LICENSE in project root
+ * @source      https://github.com/NITHINKR06/Animated_Portfolio
+ *
+ * Part of a personal portfolio. Content and design belong to Nithin K R.
+ * Code structure may be studied; redistribution as personal portfolio
+ * without attribution violates the project license.
+ */
+import { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X, Download, ExternalLink, FileText } from 'lucide-react';
+
+interface ResumeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ResumeModal = ({ isOpen, onClose }: ResumeModalProps) => {
+  const resumeUrl = '/NithinKR.pdf';
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = resumeUrl;
+    link.download = 'NithinKR.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+
+        {/* Modal Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{
+            type: 'spring',
+            damping: 25,
+            stiffness: 300,
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl glass-card border border-white/10 shadow-2xl"
+        >
+          {/* Close button */}
+          <motion.button
+            onClick={onClose}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full glass-card border border-white/10 text-gray-300 transition-all hover:border-red-400/50 hover:text-white"
+            aria-label="Close resume modal"
+          >
+            <X size={18} />
+          </motion.button>
+
+          <div className="relative flex h-[90vh] flex-col">
+            {/* Header */}
+            <div className="border-b border-white/10 px-6 py-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-red-500/20 to-red-400/20 border border-red-400/30">
+                    <FileText className="text-red-300" size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white md:text-2xl">
+                      My{' '}
+                      <span className="bg-gradient-to-r from-red-400 via-red-300 to-red-600 bg-clip-text text-transparent">
+                        Resume
+                      </span>
+                    </h2>
+                    <p className="text-sm text-gray-400">Nithin K R • Full Stack Developer</p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <motion.button
+                    onClick={handleDownload}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-red-500/30 transition-all hover:from-red-500 hover:to-red-600"
+                  >
+                    <Download size={16} />
+                    <span>Download</span>
+                  </motion.button>
+
+                  <motion.a
+                    href={resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 rounded-lg glass-card border border-white/20 px-4 py-2 text-sm font-medium text-white transition-all hover:border-red-400/50"
+                  >
+                    <ExternalLink size={16} />
+                    <span>Open</span>
+                  </motion.a>
+                </div>
+              </div>
+            </div>
+
+            {/* PDF Viewer */}
+            <div className="relative flex-1 overflow-hidden bg-black/50">
+              <iframe
+                src={`${resumeUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                title="Nithin K R Resume"
+                className="h-full w-full"
+              />
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+export { ResumeModal };

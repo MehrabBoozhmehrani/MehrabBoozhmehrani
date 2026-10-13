@@ -1,0 +1,417 @@
+/**
+ * @component Hero
+ * @description Hero section of the Animated 3D Portfolio
+ * @author      Nithin K R — https://github.com/NITHINKR06
+ * @license     Attribution required — see LICENSE in project root
+ * @source      https://github.com/NITHINKR06/Animated_Portfolio
+ *
+ * Part of a personal portfolio. Content and design belong to Nithin K R.
+ * Code structure may be studied; redistribution as personal portfolio
+ * without attribution violates the project license.
+ */
+import { motion, useReducedMotion } from 'framer-motion';
+import { useState } from 'react';
+import { Github, Instagram, Mail, ChevronDown, FileText, Phone } from 'lucide-react';
+import { portfolioData } from '../data/portfolio';
+import type { Project } from '../data';
+
+interface HeroProps {
+  onResumeClick?: () => void;
+  onProjectClick?: (project: Project) => void;
+}
+
+type Orbit = {
+  radius: number;
+  duration: number;
+  startAngle: number;
+  clockwise: boolean;
+  icons: { src: string; label: string; angle: number }[];
+};
+
+const iconProjectMap: Record<string, string> = {
+  React: 'animated-portfolio',
+  TypeScript: 'animated-portfolio',
+  'Node.js': 'walrus',
+  Python: 'driftguard',
+  Docker: 'codesentinel',
+  'Three.js': 'animated-portfolio',
+  MongoDB: 'walrus',
+  Kali: 'packet-defender',
+  Postgres: 'kaleido',
+};
+
+const orbits: Orbit[] = [
+  {
+    radius: 215,
+    duration: 36,
+    startAngle: 0,
+    clockwise: true,
+    icons: [
+      { src: '/logos/python-original.svg', label: 'Python', angle: 0 },
+      { src: 'https://cdn.simpleicons.org/lichess/ffffff', label: 'Lichess', angle: 180 },
+    ],
+  },
+  {
+    radius: 265,
+    duration: 44,
+    startAngle: 60,
+    clockwise: false,
+    icons: [
+      { src: 'https://cdn.simpleicons.org/chessdotcom/7FA650', label: 'Chess.com', angle: 0 },
+      { src: '/logos/github-original.svg', label: 'GitHub', angle: 120 },
+      { src: 'https://cdn.simpleicons.org/instagram/E4405F', label: 'Instagram', angle: 240 },
+    ],
+  },
+  {
+    radius: 315,
+    duration: 55,
+    startAngle: 30,
+    clockwise: true,
+    icons: [
+      { src: '/logos/python-original.svg', label: 'Python', angle: 0 },
+      { src: 'https://cdn.simpleicons.org/lichess/ffffff', label: 'Lichess', angle: 90 },
+      { src: 'https://cdn.simpleicons.org/chessdotcom/7FA650', label: 'Chess.com', angle: 180 },
+      { src: '/logos/github-original.svg', label: 'GitHub', angle: 270 },
+    ],
+  },
+];
+
+interface OrbitRingsProps {
+  onProjectClick?: (project: Project) => void;
+}
+
+function OrbitRings({ onProjectClick }: OrbitRingsProps) {
+  const reduce = useReducedMotion();
+  const projects = portfolioData.projects;
+
+  const handleIconClick = (label: string) => {
+    const projectId = iconProjectMap[label];
+    if (!projectId || !onProjectClick) return;
+    const project = projects.find((p) => p.id === projectId);
+    if (project) onProjectClick(project);
+  };
+
+  return (
+    <div className="absolute inset-0" style={{ width: '100%', height: '100%' }}>
+      {orbits.map((orbit, oi) => (
+        <div
+          key={oi}
+          className="absolute"
+          style={{
+            top: '50%',
+            left: '50%',
+            width: orbit.radius * 2,
+            height: orbit.radius * 2,
+            marginTop: -orbit.radius,
+            marginLeft: -orbit.radius,
+            borderRadius: '50%',
+            border: '1px solid var(--theme-border)',
+          }}
+        >
+          <motion.div
+            style={{ width: '100%', height: '100%', position: 'relative' }}
+            animate={reduce ? {} : { rotate: orbit.clockwise ? 360 : -360 }}
+            transition={{ duration: orbit.duration, repeat: Infinity, ease: 'linear' }}
+          >
+            {orbit.icons.map((icon, ii) => {
+              const rad = ((icon.angle + orbit.startAngle) * Math.PI) / 180;
+              const x = orbit.radius + orbit.radius * Math.cos(rad) - 22;
+              const y = orbit.radius + orbit.radius * Math.sin(rad) - 22;
+              const projectId = iconProjectMap[icon.label];
+              const isClickable = !!projectId && !!onProjectClick;
+
+              return (
+                <motion.div
+                  key={ii}
+                  className={`group absolute w-11 h-11 rounded-full theme-panel border backdrop-blur-md flex items-center justify-center ${
+                    isClickable ? 'cursor-pointer' : 'cursor-default'
+                  }`}
+                  style={{
+                    left: x,
+                    top: y,
+                    borderColor: 'var(--theme-border)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.28)',
+                  }}
+                  animate={reduce ? {} : { rotate: orbit.clockwise ? -360 : 360 }}
+                  transition={{ duration: orbit.duration, repeat: Infinity, ease: 'linear' }}
+                  whileHover={isClickable ? { scale: 1.3 } : { scale: 1.1 }}
+                  whileTap={isClickable ? { scale: 0.95 } : {}}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleIconClick(icon.label);
+                  }}
+                  title={isClickable ? `View ${icon.label} project` : icon.label}
+                >
+                  <img
+                    src={icon.src}
+                    alt={icon.label}
+                    className="w-5 h-5 object-contain pointer-events-none"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = '0';
+                    }}
+                  />
+
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-30">
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span
+                        className="text-[9px] font-medium bg-[rgba(6,5,5,0.92)] px-1.5 py-0.5 rounded border border-white/10"
+                        style={{ color: 'var(--theme-text-cream)' }}
+                      >
+                        {icon.label}
+                      </span>
+                      {isClickable && (
+                        <span className="text-[8px]" style={{ color: 'rgba(246,239,230,0.68)' }}>
+                          click to view
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isClickable && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{ border: '1px solid rgba(246,239,230,0.2)' }}
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0, 0.4] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export const Hero = ({ onResumeClick, onProjectClick }: HeroProps) => {
+  const { personal } = portfolioData;
+  const reduce = useReducedMotion();
+  const [language, setLanguage] = useState<'en' | 'fa'>(() => (localStorage.getItem('portfolioLanguage') as 'en' | 'fa') || 'en');
+  const isFa = language === 'fa';
+  const toggleLanguage = () => { const next = isFa ? 'en' : 'fa'; setLanguage(next); localStorage.setItem('portfolioLanguage', next); document.documentElement.lang = next; document.documentElement.dir = next === 'fa' ? 'rtl' : 'ltr'; };
+  const displayName = isFa ? 'مهراب بوژمهرانی' : 'Mehrab Boozhmehrani';
+  const displayTitle = isFa ? 'برنامه‌نویس پایتون | شطرنج‌باز | توسعه‌دهنده وب' : 'Python Developer | Chess Player | Web Developer';
+  const displayBio = isFa ? 'مهراب بوژمهرانی، برنامه‌نویس پایتون، شطرنج‌باز و توسعه‌دهنده وب اهل نیشابور ایران است. افتخارات شطرنج: مقام سوم زیر ۸ سال پسران استان (۱۳۹۷)؛ مقام دوم زیر ۸ سال برق‌آسا، مقام اول زیر ۱۲ سال و مقام دوم زیر ۱۰ سال (۱۳۹۸)؛ مقام پنجم زیر ۱۰ سال پسران استان (۱۳۹۹)؛ مقام سوم، اول و دوم زیر ۱۲ سال پسران، از جمله برق‌آسا (۱۴۰۱)؛ و مقام سوم مسابقات تیمی استان با تیم نیشابور (۱۴۰۲). او وب‌سایت رسمی هیأت شطرنج شهرستان نیشابور را طراحی و توسعه داده است. پروفایل‌های شطرنج: لیچس و چس‌دات‌کام؛ فیده: ratings.fide.com.' : personal.bio;
+
+  const scrollToNext = () => {
+    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden theme-section-light" dir={isFa ? 'rtl' : 'ltr'}>
+      <button type="button" onClick={toggleLanguage} className="absolute top-5 left-5 z-30 rounded-full border border-emerald-700/30 bg-[#f6efe6]/90 px-4 py-2 text-sm font-bold text-[#12382c] shadow-lg hover:bg-white" aria-label="Switch language">{isFa ? 'English' : 'فارسی'}</button>
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-[rgba(255,255,255,0.7)] blur-3xl" />
+        <div className="absolute top-10 right-[-6rem] w-[28rem] h-[28rem] rounded-full bg-[rgba(0,0,0,0.06)] blur-3xl" />
+        <div className="absolute bottom-[-7rem] left-1/2 w-[34rem] h-[34rem] -translate-x-1/2 rounded-full bg-[rgba(255,255,255,0.35)] blur-3xl" />
+      </div>
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-center md:text-left flex flex-col items-center md:items-start space-y-5 order-2 md:order-1"
+        >
+          <motion.h1
+            className="text-2xl md:text-5xl lg:text-6xl font-bold mb-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <span className="text-slate-900">{isFa ? 'من ' : 'I am '}</span>
+            <motion.span
+              className="text-gradient"
+              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+              style={{ backgroundSize: '200% 200%' }}
+            >
+              {displayName}
+            </motion.span>
+          </motion.h1>
+
+          <motion.h2
+            className="text-xl md:text-4xl"
+            style={{ color: '#2b2b2b' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            {displayTitle}
+          </motion.h2>
+
+          <motion.p
+            className="text-base md:text-lg leading-relaxed max-w-md md:max-w-none"
+            style={{ color: '#5e5e5e' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+          >
+            {displayBio}
+          </motion.p>
+
+          <motion.div
+            className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 mt-6 w-full sm:w-auto justify-center md:justify-start"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1 }}
+          >
+            <motion.a
+              href={`mailto:${personal.email}`}
+              className="w-full sm:w-auto text-center px-6 py-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Mail size={20} className="inline-block mr-2 text-emerald-700" />
+              <span className="text-slate-900">{isFa ? 'تماس با من' : 'Get In Touch'}</span>
+            </motion.a>
+
+            <motion.a
+              href={personal.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto text-center px-6 py-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Github size={20} className="inline-block mr-2 text-emerald-700" />
+              <span className="text-slate-900">{isFa ? 'مشاهده پروژه‌ها' : 'View Work'}</span>
+            </motion.a>
+
+            <motion.button
+              type="button"
+              onClick={() =>
+                onResumeClick
+                  ? onResumeClick()
+                  : window.open('/MehrabBoozhmehrani.pdf', '_blank', 'noopener,noreferrer')
+              }
+              className="w-full sm:w-auto text-center px-6 py-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FileText size={20} className="inline-block mr-2 text-emerald-700" />
+              <span className="text-slate-900">{isFa ? 'مشاهده رزومه' : 'View Resume'}</span>
+            </motion.button>
+          </motion.div>
+
+          <motion.div
+            className="flex justify-center md:justify-start gap-6 mt-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+          >
+            <motion.a
+              href={personal.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Github size={22} className="text-emerald-700" />
+            </motion.a>
+            <motion.a
+              href={personal.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.1, rotate: -5 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Instagram size={22} className="text-emerald-700" />
+            </motion.a>
+            <motion.a
+              href={`tel:${personal.phone}`}
+              aria-label={isFa ? 'تماس تلفنی' : 'Call by phone'}
+              className="p-3 rounded-full bg-white/80 border border-black/10 text-slate-900 shadow-md shadow-black/5 backdrop-blur-md"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Phone size={22} className="text-emerald-700" />
+            </motion.a>
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="flex justify-center md:justify-end order-1 md:order-2"
+        >
+          <div
+            className="md:hidden w-44 h-44 relative rounded-full overflow-hidden"
+            style={{
+              border: '2px solid rgba(0,0,0,0.18)',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.18)',
+            }}
+          >
+            <img
+              src="/mehrab-profile.png"
+              alt="Mehrab Boozhmehrani"
+              className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+
+          <motion.div
+            className="hidden md:block relative md:scale-[0.6] lg:scale-100 origin-right lg:origin-center"
+            animate={reduce ? {} : { y: [0, -12, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: 660, height: 660 }}
+          >
+            <OrbitRings onProjectClick={onProjectClick} />
+
+            <div
+              className="absolute"
+              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+            >
+              <div className="relative w-80 h-80">
+                <motion.div
+                  className="absolute -inset-[5px] rounded-full"
+                  style={{
+                    background:
+                      'conic-gradient(from 0deg, rgba(246,239,230,0.25), #087f5b, #20a879, rgba(246,239,230,0.25))',
+                    padding: 2,
+                  }}
+                  animate={reduce ? {} : { rotate: 360 }}
+                  transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
+                >
+                  <div className="w-full h-full rounded-full bg-[var(--theme-bg-gradient-start)]" />
+                </motion.div>
+
+                <div
+                  className="relative z-10 w-full h-full rounded-full overflow-hidden"
+                  style={{
+                    border: '2px solid rgba(0,0,0,0.18)',
+                    boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
+                  }}
+                >
+                  <img
+                    src="/mehrab-profile.png"
+                    alt="Mehrab Boozhmehrani"
+                    className="w-full h-full object-cover"
+                    decoding="async"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent to-transparent" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <motion.button
+        onClick={scrollToNext}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 p-3 rounded-full bg-white/80 border border-black/10 shadow-md shadow-black/5 backdrop-blur-md"
+        animate={{ y: [0, 8, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+        whileHover={{ scale: 1.1 }}
+        aria-label="Scroll to next section"
+      >
+        <ChevronDown size={22} className="text-slate-900" />
+      </motion.button>
+    </section>
+  );
+};
